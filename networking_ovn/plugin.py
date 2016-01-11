@@ -117,6 +117,7 @@ class OVNPlugin(db_base_plugin_v2.NeutronDbPluginV2,
 
     def _setup_rpc(self):
         self.endpoints = [dhcp_rpc.DhcpRpcCallback(),
+                          l3_rpc.L3RpcCallback(),
                           agents_db.AgentExtRpcCallback(),
                           metadata_rpc.MetadataRpcCallback()]
         self.agent_notifiers[const.AGENT_TYPE_L3] = (
@@ -131,12 +132,11 @@ class OVNPlugin(db_base_plugin_v2.NeutronDbPluginV2,
             ['agent', 'dhcp_agent_scheduler'])
 
     def start_rpc_listeners(self):
-        self.conn = n_rpc.create_connection(new=True)
-        self.conn.create_consumer(topics.PLUGIN, self.endpoints,
-                                  fanout=False)
+        self.conn = n_rpc.create_connection()
+        self.conn.create_consumer(topics.PLUGIN, self.endpoints, fanout=False)
         self.conn.create_consumer(topics.L3PLUGIN, self.endpoints,
                                   fanout=False)
-        self.conn.create_consumer(topics.REPORTS, self.endpoints,
+        self.conn.create_consumer(topics.PLUGIN, self.endpoints,
                                   fanout=False)
         self.conn.consume_in_threads()
 
