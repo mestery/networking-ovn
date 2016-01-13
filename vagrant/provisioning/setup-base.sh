@@ -18,6 +18,11 @@ fi
 # for a local deployment, this repo folder is shared between the host and the guests
 if [ ! -d "networking-ovn" ]; then
     git clone http://git.openstack.org/openstack/networking-ovn.git
+    cd networking-ovn
+    git remote add kyle-ovn https://github.com/mestery/networking-ovn.git
+    git fetch kyle-ovn
+    git checkout sl-liberty
+    cd ..
 fi
 
 # Temporary for swap space config
