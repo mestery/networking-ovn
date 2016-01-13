@@ -24,4 +24,4 @@ SERVICE_HOST=$ipaddress
 OVN_REMOTE=tcp:$ovnip:6640
 DEVSTACKEOF
 
-#devstack/stack.sh
+devstack/stack.sh
