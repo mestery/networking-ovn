@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 cp networking-ovn/devstack/local.conf.sample devstack/local.conf
 
+if [ "$1" != "" ]; then
+    ovnip=$1
+fi
+
 # Get the IP address
 ipaddress=$(/sbin/ifconfig eth1 | grep 'inet addr' | awk -F' ' '{print $2}' | awk -F':' '{print $2}')
 
@@ -17,7 +21,7 @@ HOST_IP=$ipaddress
 HOSTNAME=$(hostname)
 SERVICE_HOST_NAME=${HOST_NAME}
 SERVICE_HOST=$ipaddress
-OVN_REMOTE=$1
+OVN_REMOTE=tcp:$ovnip:6640
 DEVSTACKEOF
 
-devstack/stack.sh
+#devstack/stack.sh
