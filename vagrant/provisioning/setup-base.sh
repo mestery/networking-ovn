@@ -10,6 +10,10 @@ echo export LC_ALL=en_US.UTF-8 >> ~/.bash_profile
 echo export LANG=en_US.UTF-8 >> ~/.bash_profile
 if [ ! -d "devstack" ]; then
     git clone https://github.com/openstack-dev/devstack
+    cd devstack
+    git fetch
+    git checkout stable/liberty
+    cd ..
 fi
 # for a local deployment, this repo folder is shared between the host and the guests
 if [ ! -d "networking-ovn" ]; then
