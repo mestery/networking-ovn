@@ -17,6 +17,7 @@ HOST_IP=$ipaddress
 HOSTNAME=$(hostname)
 SERVICE_HOST_NAME=${HOST_NAME}
 SERVICE_HOST=$ipaddress
+OVN_REMOTE=$1
 DEVSTACKEOF
 
 devstack/stack.sh

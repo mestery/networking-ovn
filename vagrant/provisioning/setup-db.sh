@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-cp networking-ovn/devstack/computenode-local.conf.sample devstack/local.conf
+cp networking-ovn/devstack/db-local.conf.sample devstack/local.conf
 if [ "$1" != "" ]; then
     sed -i -e 's/<IP address of host running everything else>/'$1'/g' devstack/local.conf
 fi
@@ -15,7 +15,6 @@ cat << DEVSTACKEOF >> devstack/local.conf
 Q_HOST=$1
 HOST_IP=$ipaddress
 HOSTNAME=$(hostname)
-OVN_REMOTE=$2
 DEVSTACKEOF
 
 devstack/stack.sh
