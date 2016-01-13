@@ -22,7 +22,8 @@ ADMIN_PASSWORD=password
 #OVN_REPO=http://github.com/blp/ovs-reviews.git
 #OVN_BRANCH=origin/ovn
 
-enable_plugin networking-ovn http://git.openstack.org/openstack/networking-ovn
+enable_plugin networking-ovn https://github.com/mestery/networking-ovn.git sl-liberty
+#enable_plugin networking-ovn http://git.openstack.org/openstack/networking-ovn
 enable_service ovn-northd
 enable_service ovn-controller
 
@@ -48,12 +49,16 @@ disable_service q-agt
 # Whether to enable using OVN's L3 functionality. If this value is disabled,
 # Openstack will use the q-l3 functionality.  If you set OVN_L3_MODE to True,
 # you must also disable the q-l3 service.
-#OVN_L3_MODE=False
-enable_service q-l3
-#disable_service q-l3
+OVN_L3_MODE=True
+#enable_service q-l3
+disable_service q-l3
 
 # Whether or not to build custom openvswitch kernel modules from the ovs git
 # tree. This is enabled by default.  This is required unless your distro kernel
 # includes ovs+conntrack support.  This support was first released in Linux 4.3,
 # and will likely be backported by some distros.
 #OVN_BUILD_MODULES=True
+
+RECLONE=True
+#NEUTRON_REPO=https://review.openstack.org/openstack/neutron
+#NEUTRON_BRANCH=refs/changes/45/238745/1
