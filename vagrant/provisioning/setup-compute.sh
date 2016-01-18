@@ -23,3 +23,8 @@ OVN_REMOTE=tcp:$ovnip:6640
 DEVSTACKEOF
 
 devstack/stack.sh
+
+# Setup the provider network
+source /vagrant/provisioning/provider-setup.sh
+
+provider_setup

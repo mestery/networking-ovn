@@ -25,3 +25,13 @@ OVN_REMOTE=tcp:$ovnip:6640
 DEVSTACKEOF
 
 devstack/stack.sh
+
+# Setup the provider network
+source /vagrant/provisioning/provider-setup.sh
+
+provider_setup
+
+# Actually create the provider network
+source devstack/openrc admin admin
+neutron net-create provider --shared --provider:physical_network providernet --provider:network_type flat
+neutron subnet-create provider 192.168.66.0/24 --name provider-subnet --gateway 192.168.66.1 --allocation-pool start=192.168.66.20,end=192.168.66.99 --ip-version 4
