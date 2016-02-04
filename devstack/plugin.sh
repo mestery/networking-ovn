@@ -260,6 +260,9 @@ function start_ovs {
     local ovsdb_nb_logfile="ovsdb-server-nb.log.${CURRENT_LOG_TIME}"
     bash -c "cd '$LOGDIR' && touch '$ovsdb_nb_logfile' && ln -sf '$ovsdb_nb_logfile' ovsdb-server-nb.log"
 
+    local ovsdb_sb_logfile="ovsdb-server-sb.log.${CURRENT_LOG_TIME}"
+    bash -c "cd '$LOGDIR' && touch '$ovsdb_sb_logfile' && ln -sf '$ovsdb_sb_logfile' ovsdb-server-sb.log"
+
     cd $DATA_DIR/ovs
 
     EXTRA_DBS=""
@@ -268,15 +271,27 @@ function start_ovs {
         EXTRA_DBS="ovnsb.db"
         OVSDB_SB_REMOTE="--remote=ptcp:6640:$HOST_IP"
         OVSDB_NB_REMOTE="--remote=ptcp:6641:$HOST_IP"
-        PID_FILE="/usr/local/var/run/openvswitch/ovsdb-server-nb.pid"
+        NB_PID_FILE="/usr/local/var/run/openvswitch/ovsdb-server-nb.pid"
+        SB_PID_FILE="/usr/local/var/run/openvswitch/ovsdb-server-sb.pid"
 
         ovsdb-server --remote=punix:/usr/local/var/run/openvswitch/nb_db.sock \
-                     --pidfile=$PID_FILE --detach -vconsole:off \
+                     --pidfile=$NB_PID_FILE --detach -vconsole:off \
                      --log-file=$LOGDIR/ovsdb-server-nb.log \
                      $OVSDB_NB_REMOTE \
                      ovnnb.db
         echo -n "Waiting for nb ovsdb-server to start ... "
         while ! test -e /usr/local/var/run/openvswitch/nb_db.sock ; do
+            sleep 1
+        done
+        echo "done."
+
+        ovsdb-server --remote=punix:/usr/local/var/run/openvswitch/sb_db.sock \
+                     --pidfile=$SB_PID_FILE --detach -vconsole:off \
+                     --log-file=$LOGDIR/ovsdb-server-sb.log $OVSDB_SB_REMOTE \
+                     ovnsb.db
+
+        echo -n "Waiting for sb ovsdb-server to start ... "
+        while ! test -e /usr/local/var/run/openvswitch/sb_db.sock ; do
             sleep 1
         done
         echo "done."
@@ -293,8 +308,7 @@ function start_ovs {
     ovsdb-server --remote=punix:/usr/local/var/run/openvswitch/db.sock \
                  --remote=db:Open_vSwitch,Open_vSwitch,manager_options \
                  --pidfile --detach -vconsole:off \
-                 --log-file=$LOGDIR/ovsdb-server.log $OVSDB_SB_REMOTE \
-                 conf.db ${EXTRA_DBS}
+                 --log-file=$LOGDIR/ovsdb-server.log conf.db
 
     echo -n "Waiting for ovsdb-server to start ... "
     while ! test -e /usr/local/var/run/openvswitch/db.sock ; do
@@ -346,7 +360,7 @@ function start_ovn {
     if is_ovn_service_enabled ovn-northd ; then
 
         OVNNB_DB="unix:/usr/local/var/run/openvswitch/nb_db.sock"
-        OVNSB_DB="unix:/usr/local/var/run/openvswitch/db.sock"
+        OVNSB_DB="unix:/usr/local/var/run/openvswitch/sb_db.sock"
 
         run_process ovn-northd "ovn-northd --ovnnb-db=$OVNNB_DB \
                                            --ovnsb-db=$OVNSB_DB \
