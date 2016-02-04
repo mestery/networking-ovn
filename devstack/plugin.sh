@@ -49,8 +49,11 @@ NETWORKING_OVN_DIR=$DEST/networking-ovn
 # The branch to use from $OVN_REPO
 OVN_BRANCH=${OVN_BRANCH:-origin/master}
 
-# How to connect to ovsdb-server hosting the OVN databases.
-OVN_REMOTE=${OVN_REMOTE:-tcp:$HOST_IP:6640}
+# How to connect to ovsdb-server hosting the OVN SB database.
+OVN_SB_REMOTE=${OVN_SB_REMOTE:-tcp:$HOST_IP:6640}
+
+# How to connect to ovsdb-server hosting the OVN NB database
+OVN_NB_REMOTE=${OVN_NB_REMOTE:-tcp:$HOST_IP:6641}
 
 # A UUID to uniquely identify this system.  If one is not specified, a random
 # one will be generated.  A randomly generated UUID will be saved in a file
@@ -119,7 +122,7 @@ function configure_ovn_plugin {
 
         iniset $NEUTRON_CONF DEFAULT core_plugin "$Q_PLUGIN_CLASS"
         iniset $NEUTRON_CONF DEFAULT service_plugins ""
-        iniset $Q_PLUGIN_CONF_FILE ovn ovsdb_connection "$OVN_REMOTE"
+        iniset $Q_PLUGIN_CONF_FILE ovn ovsdb_connection "$OVN_NB_REMOTE"
         iniset $Q_PLUGIN_CONF_FILE ovn ovn_l3_mode "$OVN_L3_MODE"
     fi
 
@@ -254,13 +257,29 @@ function start_ovs {
     local ovsdb_logfile="ovsdb-server.log.${CURRENT_LOG_TIME}"
     bash -c "cd '$LOGDIR' && touch '$ovsdb_logfile' && ln -sf '$ovsdb_logfile' ovsdb-server.log"
 
+    local ovsdb_nb_logfile="ovsdb-server-nb.log.${CURRENT_LOG_TIME}"
+    bash -c "cd '$LOGDIR' && touch '$ovsdb_nb_logfile' && ln -sf '$ovsdb_nb_logfile' ovsdb-server-nb.log"
+
     cd $DATA_DIR/ovs
 
     EXTRA_DBS=""
-    OVSDB_REMOTE=""
+    OVSDB_SB_REMOTE=""
     if is_ovn_service_enabled ovn-northd ; then
-        EXTRA_DBS="ovnsb.db ovnnb.db"
-        OVSDB_REMOTE="--remote=ptcp:6640:$HOST_IP"
+        EXTRA_DBS="ovnsb.db"
+        OVSDB_SB_REMOTE="--remote=ptcp:6640:$HOST_IP"
+        OVSDB_NB_REMOTE="--remote=ptcp:6641:$HOST_IP"
+        PID_FILE="/usr/local/var/run/openvswitch/ovsdb-server-nb.pid"
+
+        ovsdb-server --remote=punix:/usr/local/var/run/openvswitch/nb_db.sock \
+                     --pidfile=$PID_FILE --detach -vconsole:off \
+                     --log-file=$LOGDIR/ovsdb-server-nb.log \
+                     $OVSDB_NB_REMOTE \
+                     ovnnb.db
+        echo -n "Waiting for nb ovsdb-server to start ... "
+        while ! test -e /usr/local/var/run/openvswitch/nb_db.sock ; do
+            sleep 1
+        done
+        echo "done."
     fi
 
     # TODO (regXboi): it would be nice to run the following with run_process
@@ -274,7 +293,7 @@ function start_ovs {
     ovsdb-server --remote=punix:/usr/local/var/run/openvswitch/db.sock \
                  --remote=db:Open_vSwitch,Open_vSwitch,manager_options \
                  --pidfile --detach -vconsole:off \
-                 --log-file=$LOGDIR/ovsdb-server.log $OVSDB_REMOTE \
+                 --log-file=$LOGDIR/ovsdb-server.log $OVSDB_SB_REMOTE \
                  conf.db ${EXTRA_DBS}
 
     echo -n "Waiting for ovsdb-server to start ... "
@@ -286,7 +305,7 @@ function start_ovs {
     ovs-vsctl --no-wait set open_vswitch . system-type="devstack"
     ovs-vsctl --no-wait set open_vswitch . external-ids:system-id="$OVN_UUID"
     if is_ovn_service_enabled ovn-controller ; then
-        ovs-vsctl --no-wait set open_vswitch . external-ids:ovn-remote="$OVN_REMOTE"
+        ovs-vsctl --no-wait set open_vswitch . external-ids:ovn-remote="$OVN_SB_REMOTE"
         ovs-vsctl --no-wait set open_vswitch . external-ids:ovn-bridge="br-int"
         ovs-vsctl --no-wait set open_vswitch . external-ids:ovn-encap-type="geneve"
         ovs-vsctl --no-wait set open_vswitch . external-ids:ovn-encap-ip="$HOST_IP"
@@ -325,9 +344,14 @@ function start_ovn {
     fi
 
     if is_ovn_service_enabled ovn-northd ; then
-        # TODO (regXboi) ovn-northd doesn't appear to log to console at
-        # all - revisit this after that is fixed
-        run_process ovn-northd "ovn-northd --pidfile --log-file=$LOGDIR/ovn-northd.log"
+
+        OVNNB_DB="unix:/usr/local/var/run/openvswitch/nb_db.sock"
+        OVNSB_DB="unix:/usr/local/var/run/openvswitch/db.sock"
+
+        run_process ovn-northd "ovn-northd --ovnnb-db=$OVNNB_DB \
+                                           --ovnsb-db=$OVNSB_DB \
+                                           --pidfile \
+                                           --log-file=$LOGDIR/ovn-northd.log"
 
         # This makes sure that the console logs have time stamps to
         # the millisecond, but we need to make sure ovs-appctl has
