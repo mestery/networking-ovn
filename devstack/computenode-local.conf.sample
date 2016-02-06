@@ -22,7 +22,8 @@ ADMIN_PASSWORD=password
 #OVN_REPO=http://github.com/blp/ovs-reviews.git
 #OVN_BRANCH=origin/ovn
 
-enable_plugin networking-ovn http://git.openstack.org/openstack/networking-ovn
+#enable_plugin networking-ovn http://git.openstack.org/openstack/networking-ovn
+enable_plugin networking-ovn https://github.com/mestery/networking-ovn.git refactor
 
 disable_all_services
 enable_service n-cpu
@@ -66,3 +67,5 @@ VNCSERVER_PROXYCLIENT_ADDRESS=$VNCSERVER_LISTEN
 # If you enable the DHCP agent, configure it to provide a route for
 # metadata to instances.
 ENABLE_ISOLATED_METADATA=True
+
+RECLONE=yes

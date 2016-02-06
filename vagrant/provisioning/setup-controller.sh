@@ -22,7 +22,7 @@ HOST_IP=$ipaddress
 HOSTNAME=$(hostname)
 SERVICE_HOST_NAME=${HOST_NAME}
 SERVICE_HOST=$ipaddress
-OVN_REMOTE=tcp:$ovnip:6640
+OVN_SB_REMOTE=tcp:$ovnip:6640
 OVN_NB_REMOTE=tcp:$ovnip:6641
 disable_service ovn-northd
 disable_service c-api c-sch c-vol n-cpu q-dhcp q-meta tempest
@@ -78,4 +78,4 @@ sudo ip route add $FIXED_RANGE via $ROUTER_GATEWAY
 # Set the OVN_*_DB variables to enable OVN commands using a remote database.
 echo -e "\n# Enable OVN commands using a remote database.
 export OVN_NB_DB=$OVN_NB_REMOTE
-export OVN_SB_DB=$OVN_REMOTE" >> ~/.bash_profile
+export OVN_SB_DB=$OVN_SB_REMOTE" >> ~/.bash_profile

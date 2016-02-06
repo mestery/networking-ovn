@@ -22,7 +22,8 @@ ADMIN_PASSWORD=password
 #OVN_REPO=http://github.com/blp/ovs-reviews.git
 #OVN_BRANCH=origin/ovn
 
-enable_plugin networking-ovn http://git.openstack.org/openstack/networking-ovn
+#enable_plugin networking-ovn http://git.openstack.org/openstack/networking-ovn
+enable_plugin networking-ovn https://github.com/mestery/networking-ovn.git refactor
 enable_service ovn-northd
 enable_service ovn-controller
 
@@ -69,3 +70,9 @@ disable_service q-l3
 # If you enable the DHCP agent, configure it to provide a route for
 # metadata to instances.
 ENABLE_ISOLATED_METADATA=True
+
+RECLONE=yes
+enable_plugin kuryr https://git.openstack.org/openstack/kuryr
+enable_service kuryr
+enable_service etcd-server
+enable_service docker-engine

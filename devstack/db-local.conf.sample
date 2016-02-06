@@ -22,7 +22,8 @@ ADMIN_PASSWORD=password
 #OVN_REPO=http://github.com/blp/ovs-reviews.git
 #OVN_BRANCH=origin/ovn
 
-enable_plugin networking-ovn http://git.openstack.org/openstack/networking-ovn
+#enable_plugin networking-ovn http://git.openstack.org/openstack/networking-ovn
+enable_plugin networking-ovn https://github.com/mestery/networking-ovn.git refactor
 
 disable_all_services
 enable_service ovn-northd
@@ -37,3 +38,5 @@ enable_service ovn-northd
 # includes ovs+conntrack support.  This support was first released in Linux 4.3,
 # and will likely be backported by some distros.
 #OVN_BUILD_MODULES=True
+
+RECLONE=yes
