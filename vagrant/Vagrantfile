@@ -22,6 +22,9 @@ Vagrant.configure(2) do |config|
   net = IPAddr.new vagrant_config['provider_network']
   netmask = net.inspect().split("/")[1].split(">")[0]
 
+  # Use the completely insecure public/private key
+  config.ssh.insert_key = false
+
   # Bring up the Devstack ovsdb/ovn-northd node on Virtualbox
   config.vm.define "ovn-db" do |ovndb|
     ovndb.vm.host_name = vagrant_config['ovndb']['host_name']

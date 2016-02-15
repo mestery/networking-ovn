@@ -7,6 +7,7 @@ if [ "$2" != "" ]; then
     ovnip=$2
 fi
 
+sudo umount /opt/stack/data/nova/instances
 
 # Get the IP address
 ipaddress=$(ip -4 addr show eth1 | grep -oP "(?<=inet ).*(?=/)")
@@ -45,3 +46,17 @@ provider_setup
 echo -e "\n# Enable OVN commands using a remote database.
 export OVN_NB_DB=$OVN_REMOTE
 export OVN_SB_DB=$OVN_REMOTE" >> ~/.bash_profile
+
+# NFS Setup
+sudo mkdir -p /opt/stack/data/nova/instances
+sudo chmod o+x /opt/stack/data/nova/instances
+sudo chown vagrant:vagrant /opt/stack/data/nova/instances
+sudo sh -c "echo \"192.168.33.11:/opt/stack/data/nova/instances /opt/stack/data/nova/instances nfs defaults 0 0\" >> /etc/fstab"
+sudo mount /opt/stack/data/nova/instances
+sudo sh -c "echo \"listen_tls = 0\" >> /etc/libvirt/libvirtd.conf"
+sudo sh -c "echo \"listen_tcp = 1\" >> /etc/libvirt/libvirtd.conf"
+sudo sh -c "echo -n \"auth_tcp =\" >> /etc/libvirt/libvirtd.conf"
+sudo sh -c 'echo " \"none\"" >> /etc/libvirt/libvirtd.conf'
+sudo sh -c "sed -i 's/env libvirtd_opts\=\"\-d\"/env libvirtd_opts\=\"-d -l\"/g' /etc/init/libvirt-bin.conf"
+sudo sh -c "sed -i 's/libvirtd_opts\=\"\-d\"/libvirtd_opts\=\"\-d \-l\"/g' /etc/default/libvirt-bin"
+sudo /etc/init.d/libvirt-bin restart

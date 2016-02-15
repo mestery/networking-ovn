@@ -86,3 +86,9 @@ sudo ip route add $FIXED_RANGE via $ROUTER_GATEWAY
 echo -e "\n# Enable OVN commands using a remote database.
 export OVN_NB_DB=$OVN_REMOTE
 export OVN_SB_DB=$OVN_REMOTE" >> ~/.bash_profile
+
+# NFS Setup
+sudo mkdir -p /opt/stack/data/nova/instances
+sudo chmod o+x /opt/stack/data/nova/instances
+sudo sh -c "echo \"192.168.33.11:/opt/stack/data/nova/instances /opt/stack/data/nova/instances nfs defaults 0 0\" >> /etc/fstab"
+sudo mount /opt/stack/data/nova/instances

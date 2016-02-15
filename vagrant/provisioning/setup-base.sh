@@ -57,3 +57,15 @@ sudo swapon /swapfile1
 # the equivalent 'vboxnet' interfaces on the host.
 sudo ip link set dev eth1 mtu $MTU
 sudo ip link set dev eth2 mtu $MTU
+
+# Migration setup
+sudo sh -c "echo \"192.168.33.11 ovn-db\" >> /etc/hosts"
+sudo sh -c "echo \"192.168.33.12 ovn-controller\" >> /etc/hosts"
+sudo sh -c "echo \"192.168.33.31 ovn-compute1\" >> /etc/hosts"
+sudo sh -c "echo \"192.168.33.32 ovn-compute2\" >> /etc/hosts"
+
+# Passwordless ssh setup
+wget "https://raw.githubusercontent.com/mitchellh/vagrant/master/keys/vagrant"
+mv vagrant .ssh/id_rsa
+chmod 600 .ssh/id_rsa
+sudo cp ~vagrant/.ssh/id_rsa ~/.ssh

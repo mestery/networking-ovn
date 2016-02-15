@@ -18,3 +18,12 @@ HOSTNAME=$(hostname)
 DEVSTACKEOF
 
 devstack/stack.sh
+
+# NFS Server setup
+sudo apt-get update
+sudo apt-get install -y nfs-kernel-server nfs-common
+sudo mkdir -p /opt/stack/data/nova/instances
+sudo touch /etc/exports
+sudo sh -c "echo \"/opt/stack/data/nova/instances 192.168.33.0/24(rw,sync,fsid=0,no_root_squash)\" >> /etc/exports"
+sudo service nfs-kernel-server restart
+sudo service idmapd restart
